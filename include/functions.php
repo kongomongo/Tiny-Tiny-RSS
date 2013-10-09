@@ -149,10 +149,14 @@
 		global $suppress_debugging;
 
 		//echo "[$suppress_debugging] $msg $show\n";
+$micro_date = microtime();
+$date_array = explode(" ",$micro_date);
+$date = date("d-m-Y H:i:s",$date_array[1]);
+$ts = "Date: $date:" . $date_array[0];
 
 		if ($suppress_debugging) return false;
 
-		$ts = strftime("%H:%M:%S", time());
+//		$ts = strftime("%H:%M:%S", time());
 		if (function_exists('posix_getpid')) {
 			$ts = "$ts/" . posix_getpid();
 		}
@@ -3165,6 +3169,7 @@
 	}
 
 	function format_article($id, $mark_as_read = true, $zoom_mode = false, $owner_uid = false) {
+                _debug('format_article(', $false);
 		if (!$owner_uid) $owner_uid = $_SESSION["uid"];
 
 		$rv = array();
@@ -3178,6 +3183,9 @@
 			WHERE ref_id = '$id'");
 
 		$feed_id = (int) db_fetch_result($result, 0, "feed_id");
+_debug('1 query ttrss_user_entries', $false);
+
+		$rv['content'] .= "<!-- x1 " . microtime() . " -->\n";
 
 		$rv['feed_id'] = $feed_id;
 
@@ -3190,6 +3198,8 @@
 
 			ccache_update($feed_id, $owner_uid);
 		}
+_debug('2 update ttrss_user_entries', $false);
+		$rv['content'] .= "<!-- x2 " . microtime() . " -->\n";
 
 		$result = db_query("SELECT id,title,link,content,feed_id,comments,int_id,lang,
 			".SUBSTRING_FOR_DATE."(updated,1,16) as updated,
@@ -3205,6 +3215,8 @@
 			FROM ttrss_entries,ttrss_user_entries
 			WHERE	id = '$id' AND ref_id = id AND owner_uid = $owner_uid");
 
+                $rv['content'] .= "<!-- x3 " . microtime() . " -->\n";
+_debug('3 query ttrss_entries,ttrss_user_entries', $false);
 		if ($result) {
 
 			$line = db_fetch_assoc($result);
@@ -3400,6 +3412,8 @@
 					__("Close this window")."</button></div>";
 			$rv['content'] .= "</body></html>";
 		}
+
+_debug('format_article)', $false);
 
 		return $rv;
 
@@ -3654,8 +3668,10 @@
 	}
 
 	function getArticleFeed($id) {
+_debug('getArticleFeed before SELECT', $false);
 		$result = db_query("SELECT feed_id FROM ttrss_user_entries
 			WHERE ref_id = '$id' AND owner_uid = " . $_SESSION["uid"]);
+_debug('getArticleFeed after SELECT', $false);
 
 		if (db_num_rows($result) != 0) {
 			return db_fetch_result($result, 0, "feed_id");

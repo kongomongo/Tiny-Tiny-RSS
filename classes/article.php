@@ -27,6 +27,9 @@ class Article extends Handler_Protected {
 	}
 
 	function view() {
+		define('LOGFILE', '~/px.log');
+                _debug('view(', $false);
+
 		$id = $this->dbh->escape_string($_REQUEST["id"]);
 		$cids = explode(",", $this->dbh->escape_string($_REQUEST["cids"]));
 		$mode = $this->dbh->escape_string($_REQUEST["mode"]);
@@ -38,7 +41,9 @@ class Article extends Handler_Protected {
 		$articles = array();
 
 		if ($mode == "") {
+                	_debug('array_push(', $false);
 			array_push($articles, format_article($id, false));
+                	_debug('array_push)', $false);
 		} else if ($mode == "zoom") {
 			array_push($articles, format_article($id, true, true));
 		} else if ($mode == "raw") {
@@ -52,12 +57,16 @@ class Article extends Handler_Protected {
 			return;
 		}
 
+                _debug('catchupArticleById(', $false);
 		$this->catchupArticleById($id, 0);
+                _debug('catchupArticleById)', $false);
 
 		if (!$_SESSION["bw_limit"]) {
 			foreach ($cids as $cid) {
 				if ($cid) {
+_debug('array_push2(', $false);
 					array_push($articles, format_article($cid, false, false));
+_debug('array_push2)', $false);
 				}
 			}
 		}
@@ -66,7 +75,6 @@ class Article extends Handler_Protected {
 	}
 
 	private function catchupArticleById($id, $cmode) {
-
 		if ($cmode == 0) {
 			$this->dbh->query("UPDATE ttrss_user_entries SET
 			unread = false,last_read = NOW()
@@ -80,9 +88,12 @@ class Article extends Handler_Protected {
 			unread = NOT unread,last_read = NOW()
 			WHERE ref_id = '$id' AND owner_uid = " . $_SESSION["uid"]);
 		}
+_debug('cabi UPDATE', $false);
 
 		$feed_id = getArticleFeed($id);
+_debug('getArticleFeed', $false);
 		ccache_update($feed_id, $_SESSION["uid"]);
+_debug('ccache_update', $false);
 	}
 
 	static function create_published_article($title, $url, $content, $labels_str,

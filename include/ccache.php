@@ -93,6 +93,7 @@
 
 	function ccache_update($feed_id, $owner_uid, $is_cat = false,
 		$update_pcat = true) {
+_debug('ccache_update(', $false);
 
 		if (!is_numeric($feed_id)) return;
 
@@ -103,6 +104,7 @@
 		} */
 
 		$prev_unread = ccache_find($feed_id, $owner_uid, $is_cat, true);
+_debug('c1 after ccache_find', $false);
 
 		/* When updating a label, all we need to do is recalculate feed counters
 		 * because labels are not cached */
@@ -129,6 +131,7 @@
 
 			$result = db_query("SELECT id FROM ttrss_feeds
 						WHERE owner_uid = '$owner_uid' AND $cat_qpart");
+_debug('c2 after select ttrss_feeds', $false);
 
 			while ($line = db_fetch_assoc($result)) {
 				ccache_update($line["id"], $owner_uid, false, false);
@@ -138,17 +141,20 @@
 				FROM ttrss_counters_cache, ttrss_feeds
 				WHERE id = feed_id AND $cat_qpart AND
 				ttrss_feeds.owner_uid = '$owner_uid'");
+_debug('c3 after select ttrss_counters_cache', $false);
 
 			$unread = (int) db_fetch_result($result, 0, "sv");
 
 		} else {
 			$unread = (int) getFeedArticles($feed_id, $is_cat, true, $owner_uid);
+_debug('c3a after getFeedArticles', $false);
 		}
 
 		db_query("BEGIN");
 
 		$result = db_query("SELECT feed_id FROM $table
 			WHERE owner_uid = '$owner_uid' AND feed_id = '$feed_id' LIMIT 1");
+_debug('c4 after SELECT $table', $false);
 
 		if (db_num_rows($result) == 1) {
 			db_query("UPDATE $table SET
@@ -161,6 +167,7 @@
 				VALUES
 				($feed_id, $unread, $owner_uid, NOW())");
 		}
+_debug('c5 after INSERT/UPDATE', $false);
 
 		db_query("COMMIT");
 
@@ -184,6 +191,7 @@
 		} else if ($feed_id < 0) {
 			ccache_update_all($owner_uid);
 		}
+_debug('c6 after everything', $false);
 
 		return $unread;
 	}
